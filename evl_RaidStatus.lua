@@ -16,11 +16,12 @@ function evl_RaidStatus:AddWatch(name, callback)
 end
 
 local lastUpdate = 0
+local updateInterval = 1
 local result, name, unit, callback, count
 local onUpdate = function(self, elapsed)
 	lastUpdate = lastUpdate + elapsed
 	
-	if lastUpdate > 1 then
+	if lastUpdate > updateInterval then
 		lastUpdate = 0
 		result = {}
 
