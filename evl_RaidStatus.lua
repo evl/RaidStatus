@@ -1,17 +1,16 @@
-evl_RaidStatus = CreateFrame("Button", nil, UIParent)
-evl_RaidStatus:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 3, -3)
-evl_RaidStatus:SetHeight(16)
+local addonName, addon = ...
 
-local text = evl_RaidStatus:CreateFontString(nil, "ARTWORK")
+local frame = CreateFrame("Button", nil, UIParent)
+local text = frame:CreateFontString(nil, "ARTWORK")
 text:SetFontObject(GameFontHighlightSmall)
-text:SetPoint("TOPLEFT", evl_RaidStatus)
+text:SetPoint("TOPLEFT", frame)
 
 local MemberSortCompare = function(a, b)
 	return ((a.color.r + a.color.g + a.color.b) .. a.name) < ((b.color.r + b.color.g + b.color.b) .. b.name)
 end
 
 local watches = {}
-function evl_RaidStatus:AddWatch(name, callback)
+function addon:AddWatch(name, callback)
 	watches[name] = callback
 end
 
@@ -42,13 +41,14 @@ local onUpdate = function(self, elapsed)
 		end
 		
 		text:SetText(#result > 0 and strjoin(", ", unpack(result)) or "")
-		evl_RaidStatus:SetWidth(text:GetWidth())
+
+		frame:SetWidth(text:GetWidth())
 	end
 end
 
 local matches, class, classId, match
 local onEnter = function()
-	GameTooltip:SetOwner(evl_RaidStatus, "ANCHOR_BOTTOMLEFT")
+	GameTooltip:SetOwner(frame, "ANCHOR_BOTTOMLEFT")
 	
 	for name, callback in pairs(watches) do
 		matches = {}
@@ -80,10 +80,9 @@ local onEnter = function()
 	GameTooltip:Show()
 end
 
-evl_RaidStatus:SetScript("OnUpdate", onUpdate)
-evl_RaidStatus:SetScript("OnEnter", onEnter)
-evl_RaidStatus:SetScript("OnLeave", function() GameTooltip:Hide() end)
+frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 3, -3)
+frame:SetHeight(16)
+frame:SetScript("OnUpdate", onUpdate)
+frame:SetScript("OnEnter", onEnter)
+frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-evl_RaidStatus:AddWatch("Dead", function(unit) return UnitIsDeadOrGhost(unit) end)
-evl_RaidStatus:AddWatch("Offline", function(unit) return not UnitIsConnected(unit) end)
-evl_RaidStatus:AddWatch("AFK", function(unit) return UnitIsAFK(unit) end)

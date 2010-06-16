@@ -6,14 +6,14 @@ h2. Customization
 
 AddWatch accepts a name and a callback parameter which is fed with the unit id of a raider, a simple watch can be added as follows:
 
-<pre>evl_RaidStatus:AddWatch("Dead", function(unit) return UnitIsDeadOrGhost(unit) end)</pre>
+<pre>addon:AddWatch("Dead", function(unit) return UnitIsDeadOrGhost(unit) end)</pre>
 
 You can add much more complex callbacks:
 
 <pre>local healerClasses = {"PRIEST", "SHAMAN", "DRUID", "PALADIN"}
 local lowManaThreshold = 0.2
 
-evl_RaidStatus:AddWatch("Low Healer Mana", function(unit)
+addon:AddWatch("Low Healer Mana", function(unit)
 	local class, classId = UnitClass(unit)
 
 	-- We only want to include healer classes
