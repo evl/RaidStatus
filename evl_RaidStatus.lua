@@ -1,6 +1,7 @@
 local addonName, addon = ...
-
 local frame = CreateFrame("Button", nil, UIParent)
+local watches = {}
+
 local text = frame:CreateFontString(nil, "ARTWORK")
 text:SetFontObject(GameFontHighlightSmall)
 text:SetPoint("TOPLEFT", frame)
@@ -9,18 +10,20 @@ local memberSortCompare = function(a, b)
 	return ((a.color.r + a.color.g + a.color.b) .. a.name) < ((b.color.r + b.color.g + b.color.b) .. b.name)
 end
 
-local watches = {}
 function addon:AddWatch(name, callback)
 	watches[name] = callback
 end
 
 local lastUpdate = 0
 local updateInterval = 1
+local previousCount = 0
 local result, name, unit, callback, count
 local onUpdate = function(self, elapsed)
 	lastUpdate = lastUpdate + elapsed
+	count = GetNumRaidMembers()
 	
-	if lastUpdate > updateInterval and GetNumRaidMembers() > 0 then
+	if lastUpdate > updateInterval and count + previousCount > 0 then
+		previousCount = count		
 		lastUpdate = 0
 		result = nil
 
