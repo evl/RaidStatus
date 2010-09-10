@@ -10,47 +10,32 @@ local memberSortCompare = function(a, b)
 	return ((a.color.r + a.color.g + a.color.b) .. a.name) < ((b.color.r + b.color.g + b.color.b) .. b.name)
 end
 
-function addon:AddWatch(name, callback)
-	watches[name] = callback
-end
+local onEvent = function(self, event)
+	local result
 
-local lastUpdate = 0
-local updateInterval = 1
-local previousCount = 0
-local result, name, unit, callback, count
-local onUpdate = function(self, elapsed)
-	lastUpdate = lastUpdate + elapsed
-	count = GetNumRaidMembers()
+	for name, callback in pairs(watches) do
+		local count = 0
 	
-	if lastUpdate > updateInterval and count + previousCount > 0 then
-		previousCount = count		
-		lastUpdate = 0
-		result = nil
+		for i = 1, GetNumRaidMembers() do
+			local unit = "raid" .. i
 
-		for name, callback in pairs(watches) do
-			count = 0
-			
-			for i = 1, GetNumRaidMembers() do
-				unit = "raid" .. i
-
-				if UnitExists(unit) and callback(unit) then
-					count = count + 1
-				end
-			end
-			
-			if count > 0 then
-				result = (result and result .. ", " or "") .. name .. ": " .. count
+			if UnitExists(unit) and callback(unit) then
+				count = count + 1
 			end
 		end
+	
+		if count > 0 then
+			result = (result and result .. ", " or "") .. name .. ": " .. count
+		end
+	end
 		
-		if result then
-			text:SetText(result)
-			text:Show()
-			
-			frame:SetWidth(text:GetWidth())
-		else
-			text:Hide()
-		end
+	if result then
+		text:SetText(result)
+		text:Show()
+	
+		frame:SetWidth(text:GetWidth())
+	else
+		text:Hide()
 	end
 end
 
@@ -89,8 +74,22 @@ local onEnter = function()
 	GameTooltip:Show()
 end
 
+function addon:AddWatch(name, event, callback)
+	if typeof(event) == "table" then
+		for _, event in pairs(event) do
+			frame:RegisterEvent(event)
+		end
+	else
+		frame:RegisterEvent(event)
+	end
+	
+	watches[name] = callback	
+end
+
 frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 3, -3)
 frame:SetHeight(16)
-frame:SetScript("OnUpdate", onUpdate)
+
+frame:SetScript("OnEvent", onEvent)
 frame:SetScript("OnEnter", onEnter)
 frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
