@@ -74,12 +74,8 @@ local onEnter = function()
 	GameTooltip:Show()
 end
 
-function addon:AddWatch(name, event, callback)
-	if typeof(event) == "table" then
-		for _, event in pairs(event) do
-			frame:RegisterEvent(event)
-		end
-	else
+function addon:AddWatch(name, events, callback)
+	for _, event in pairs(type(events) == "string" and {events} or events) do
 		frame:RegisterEvent(event)
 	end
 	
