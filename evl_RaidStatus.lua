@@ -39,6 +39,15 @@ local onEvent = function(self, event)
 	end
 end
 
+local lastUpdate = 0
+local onUpdate = function(self, elapsed)
+	lastUpdate = lastUpdate + elapsed
+	
+	if lastUpdate > 1 then
+		onEvent(self, "UPDATE")
+	end
+end
+
 local matches, match, class, classId
 local onEnter = function()
 	GameTooltip:SetOwner(frame, "ANCHOR_BOTTOMLEFT")
@@ -76,7 +85,11 @@ end
 
 function addon:AddWatch(name, events, callback)
 	for _, event in pairs(type(events) == "string" and {events} or events) do
-		frame:RegisterEvent(event)
+		if event == "UPDATE" then
+			frame:SetScript("OnUpdate", onUpdate)
+		else
+			frame:RegisterEvent(event)
+		end
 	end
 	
 	watches[name] = callback	
