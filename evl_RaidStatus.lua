@@ -10,41 +10,38 @@ local memberSortCompare = function(a, b)
 	return ((a.color.r + a.color.g + a.color.b) .. a.name) < ((b.color.r + b.color.g + b.color.b) .. b.name)
 end
 
-local onEvent = function(self, event)
-	local result
-
-	for name, callback in pairs(watches) do
-		local count = 0
-	
-		for i = 1, GetNumRaidMembers() do
-			local unit = "raid" .. i
-
-			if UnitExists(unit) and callback(unit) then
-				count = count + 1
-			end
-		end
-	
-		if count > 0 then
-			result = (result and result .. ", " or "") .. name .. ": " .. count
-		end
-	end
-		
-	if result then
-		text:SetText(result)
-		text:Show()
-	
-		frame:SetWidth(text:GetWidth())
-	else
-		text:Hide()
-	end
-end
-
 local lastUpdate = 0
 local onUpdate = function(self, elapsed)
 	lastUpdate = lastUpdate + elapsed
 	
-	if lastUpdate > 1 then
-		onEvent(self, "UPDATE")
+	if lastUpdate > 1 and GetNumRaidMembers() > 0 then
+		lastUpdate = 0
+		result = nil
+
+		for name, callback in pairs(watches) do
+			local count = 0
+	
+			for i = 1, GetNumRaidMembers() do
+				local unit = "raid" .. i
+
+				if UnitExists(unit) and callback(unit) then
+					count = count + 1
+				end
+			end
+	
+			if count > 0 then
+				result = (result and result .. ", " or "") .. name .. ": " .. count
+			end
+		end
+		
+		if result then
+			text:SetText(result)
+			text:Show()
+	
+			frame:SetWidth(text:GetWidth())
+		else
+			text:Hide()
+		end
 	end
 end
 
@@ -59,8 +56,9 @@ local onEnter = function()
 			unit = "raid" .. i
 
 			if UnitExists(unit) and callback(unit) then
-				class, classId = UnitClass(unit)
+				_, classId = UnitClass(unit)
 				
+				-- TODO: Make sure classId is available at this time
 				table.insert(matches, {name = UnitName(unit), color = RAID_CLASS_COLORS[classId]})
 			end
 		end
@@ -83,22 +81,13 @@ local onEnter = function()
 	GameTooltip:Show()
 end
 
-function addon:AddWatch(name, events, callback)
-	for _, event in pairs(type(events) == "string" and {events} or events) do
-		if event == "UPDATE" then
-			frame:SetScript("OnUpdate", onUpdate)
-		else
-			frame:RegisterEvent(event)
-		end
-	end
-	
-	watches[name] = callback	
+function addon:AddWatch(name, callback)
+	watches[name] = callback
 end
 
 frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 3, -3)
 frame:SetHeight(16)
 
-frame:SetScript("OnEvent", onEvent)
+frame:SetScript("OnUpdate", onUpdate)
 frame:SetScript("OnEnter", onEnter)
 frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
