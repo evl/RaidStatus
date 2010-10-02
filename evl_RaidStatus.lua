@@ -14,23 +14,25 @@ local lastUpdate = 0
 local onUpdate = function(self, elapsed)
 	lastUpdate = lastUpdate + elapsed
 	
-	if lastUpdate > 1 and GetNumRaidMembers() > 0 then
+	if lastUpdate > 1 then
 		lastUpdate = 0
 		result = nil
-
-		for name, callback in pairs(watches) do
-			local count = 0
+		
+		if GetNumRaidMembers() > 0 then
+			for name, callback in pairs(watches) do
+				local count = 0
 	
-			for i = 1, GetNumRaidMembers() do
-				local unit = "raid" .. i
+				for i = 1, GetNumRaidMembers() do
+					local unit = "raid" .. i
 
-				if UnitExists(unit) and callback(unit) then
-					count = count + 1
+					if UnitExists(unit) and callback(unit) then
+						count = count + 1
+					end
 				end
-			end
 	
-			if count > 0 then
-				result = (result and result .. ", " or "") .. name .. ": " .. count
+				if count > 0 then
+					result = (result and result .. ", " or "") .. name .. ": " .. count
+				end
 			end
 		end
 		
