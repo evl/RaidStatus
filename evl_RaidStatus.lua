@@ -1,13 +1,27 @@
 local addonName, addon = ...
+
+addon.config = {
+	position = {"TOPLEFT", UIParent, "TOPLEFT", 3, -3},
+	font = {STANDARD_TEXT_FONT, 10},
+}
+
+local config = addon.config
 local frame = CreateFrame("Button", nil, UIParent)
 local watches = {}
 
-local text = frame:CreateFontString(nil, "ARTWORK")
-text:SetFontObject(GameFontHighlightSmall)
-text:SetPoint("TOPLEFT", frame)
+local display = frame:CreateFontString(nil, "OVERLAY")
+display:SetPoint("TOPLEFT", frame)
 
 local memberSortCompare = function(a, b)
 	return ((a.color.r + a.color.g + a.color.b) .. a.name) < ((b.color.r + b.color.g + b.color.b) .. b.name)
+end
+
+local onEvent = function()
+	frame:SetPoint(unpack(config.position))
+	frame:SetHeight(config.font[2])
+
+	display:SetShadowOffset(0.7, -0.7)
+	display:SetFont(unpack(config.font))
 end
 
 local lastUpdate = 0
@@ -37,28 +51,27 @@ local onUpdate = function(self, elapsed)
 		end
 		
 		if result then
-			text:SetText(result)
-			text:Show()
+			display:SetText(result)
+			display:Show()
 	
-			frame:SetWidth(text:GetWidth())
+			frame:SetWidth(display:GetWidth())
 		else
-			text:Hide()
+			display:Hide()
 		end
 	end
 end
 
-local matches, match, class, classId
 local onEnter = function()
 	GameTooltip:SetOwner(frame, "ANCHOR_BOTTOMLEFT")
 	
 	for name, callback in pairs(watches) do
-		matches = {}
+		local matches = {}
 		
 		for i = 1, GetNumRaidMembers() do
-			unit = "raid" .. i
+			local unit = "raid" .. i
 
 			if UnitExists(unit) and callback(unit) then
-				_, classId = UnitClass(unit)
+				local _, classId = UnitClass(unit)
 				
 				-- TODO: Make sure classId is available at this time
 				table.insert(matches, {name = UnitName(unit), color = RAID_CLASS_COLORS[classId]})
@@ -87,9 +100,9 @@ function addon:AddWatch(name, callback)
 	watches[name] = callback
 end
 
-frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 3, -3)
-frame:SetHeight(16)
-
 frame:SetScript("OnUpdate", onUpdate)
+frame:SetScript("OnEvent", onEvent)
 frame:SetScript("OnEnter", onEnter)
 frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")

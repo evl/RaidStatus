@@ -4,4 +4,5 @@
 
 evl_RaidStatus.lua
 
+config.lua
 watches.lua

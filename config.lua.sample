@@ -1,0 +1,5 @@
+local addonName, addon = ...
+local config = addon.config
+
+config.position = {"TOPLEFT", UIParent, "TOPLEFT", 3, -3}
+config.font = {STANDARD_TEXT_FONT, 10}
